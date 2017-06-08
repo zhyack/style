@@ -14,6 +14,7 @@ def getPage(url):
             urllib.urlretrieve(url, 'tmp.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
+            time.sleep(3)
             trycnt -= 1
             continue
         break
@@ -30,6 +31,7 @@ def getBookPlainTextLink(url):
             urllib.urlretrieve(url, 'tmp_folder.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
+            time.sleep(3)
             trycnt -= 1
             continue
         break
@@ -118,4 +120,4 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     flog.write('[%s]'%(','.join(retry_list)))
     flog.close()
 
-getAllBook(5, 54866, interval=1)
+getAllBook(0, 54866)
