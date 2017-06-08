@@ -79,6 +79,12 @@ def getBook(bookid):
             language = line[9:].strip().rstrip().replace('/','|')
     if (bookname == None or len(bookname)==0) or (author == None or len(author)==0) or (language == None or len(language)==0):
         return 1, None, None, None
+    if (len(bookname)>20):
+        bookname = bookname[:20]
+    if (len(author)>20):
+        author = author[:20]
+    if (len(language)>20):
+        language = language[:20]
     language_dirs = os.listdir(base_data_dir)
     if not(language in language_dirs):
         os.mkdir('%s/%s'%(base_data_dir, language))
