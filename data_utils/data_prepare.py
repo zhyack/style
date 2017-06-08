@@ -14,7 +14,7 @@ def getPage(url):
             urllib.urlretrieve(url, 'tmp.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(3)
+            time.sleep(2)
             trycnt -= 1
             continue
         break
@@ -31,7 +31,7 @@ def getBookPlainTextLink(url):
             urllib.urlretrieve(url, 'tmp_folder.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(3)
+            time.sleep(2)
             trycnt -= 1
             continue
         break
@@ -72,11 +72,11 @@ def getBook(bookid):
     for i in range(min(100,len(content))):
         line = content[i]
         if line.startswith('Title:'):
-            bookname = line[7:].strip().rstrip()
+            bookname = line[7:].strip().rstrip().replace('/','|')
         elif line.startswith('Author:'):
-            author = line[7:].strip().rstrip()
+            author = line[7:].strip().rstrip().replace('/','|')
         elif line.startswith('Language:'):
-            language = line[9:].strip().rstrip()
+            language = line[9:].strip().rstrip().replace('/','|')
     if (bookname == None) or (author == None) or (language == None):
         return 1, None, None, None
     language_dirs = os.listdir(base_data_dir)
@@ -112,8 +112,6 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
-    os.system('del tmp.html')
-    os.system('del tmp_folder.html')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list
