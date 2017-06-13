@@ -168,9 +168,9 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
-    save2json(dlang, base_data_dir+'lang.json')
-    save2json(dauthor, base_data_dir+'author.json')
-    save2json(dbook, base_data_dir+'book.json')
+    save2json(dlang, base_data_dir+'./lang.json')
+    save2json(dauthor, base_data_dir+'./author.json')
+    save2json(dbook, base_data_dir+'./book.json')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list

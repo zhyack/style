@@ -1,4 +1,4 @@
-# import data_prepare
+import data_prepare
 # data_prepare.getAllBook(0, 10000)
 data_prepare.getAllBook(10001, 20000)
 # data_prepare.getAllBook(20001, 30000)
