@@ -31,7 +31,7 @@ def getPage(url):
             urllib.urlretrieve(url, 'tmp.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(5)
+            time.sleep(1)
             trycnt -= 1
             continue
         break
@@ -48,7 +48,7 @@ def getBookPlainTextLink(url):
             urllib.urlretrieve(url, 'tmp_folder.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(5)
+            time.sleep(1)
             trycnt -= 1
             continue
         break
