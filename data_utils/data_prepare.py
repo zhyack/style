@@ -16,6 +16,9 @@ def _2utf8(s):
 
 import json
 import yaml
+def custom_str_constructor(loader, node):
+    return loader.construct_scalar(node).encode('utf-8')
+yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
 def save2json(d, pf):
     f = open(pf,'w')
     f.write(json.dumps(d, ensure_ascii=False, indent=4))
@@ -25,9 +28,6 @@ def json2load(pf):
     s = ''.join(f.readlines())
     s = _2utf8(s)
     f.close()
-    def custom_str_constructor(loader, node):
-        return loader.construct_scalar(node).encode('utf-8')
-    yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
     return yaml.load(s)
 
 base_url = "http://www.gutenberg.org/files/"
@@ -105,6 +105,17 @@ def getBook(bookid):
             author = line[7:].strip().rstrip().replace('/','|')
         elif line.startswith('Language:'):
             language = line[9:].strip().rstrip().replace('/','|')
+    try:
+        if bookname:
+            yaml.load(bookname)
+        if language:
+            yaml.load(language)
+        if author:
+            yaml.load(author)
+    except yaml.reader.ReaderError:
+        return 1, None, None, None
+    except Error:
+        pass
     if (bookname == None or len(bookname)==0) or (author == None or len(author)==0) or (language == None or len(language)==0):
         return 1, None, None, None
     language = _2utf8(language)
