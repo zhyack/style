@@ -129,10 +129,13 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         dauthor = json2load(base_data_dir+'/author.json')
     if ('book.json' in history_flist):
         dbook = json2load(base_data_dir+'/book.json')
+    rdbook = set()
+    for k in dbook.keys():
+        rdbook.add(dbook[k])
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
-        if dbook.has_key('%05d'%bookid):
+        if ('%05d'%bookid) in rdbook:
             continue
         state, bookname, language, author = getBook(bookid)
         message = ""
