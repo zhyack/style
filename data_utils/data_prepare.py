@@ -1,20 +1,37 @@
+# coding: UTF-8
 import os
 import socket
 socket.setdefaulttimeout(1)
 import urllib
 import time
 
+import json
+import yaml
+def save2json(d, pf):
+    f = open(pf,'w')
+    f.write(json.dumps(d, ensure_ascii=False, indent=4))
+    f.close()
+def json2load(pf):
+    f = open(pf,'r')
+    s = ''.join(f.readlines())
+    f.close()
+    def custom_str_constructor(loader, node):
+        return loader.construct_scalar(node).encode('utf-8')
+    yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
+    return yaml.load(s)
+
 base_url = "http://www.gutenberg.org/files/"
 base_data_dir = "../data"
+dlang, dauthor, dbook = None, None, None
 
 def getPage(url):
-    trycnt = 5
+    trycnt = 3
     while(trycnt>0):
         try:
             urllib.urlretrieve(url, 'tmp.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(2)
+            time.sleep(5)
             trycnt -= 1
             continue
         break
@@ -25,13 +42,13 @@ def getPage(url):
     return 0, content
 
 def getBookPlainTextLink(url):
-    trycnt = 5
+    trycnt = 3
     while(trycnt>0):
         try:
             urllib.urlretrieve(url, 'tmp_folder.html')
         except IOError:
             print "Detected when crawling %s, retry now..."%(url)
-            time.sleep(2)
+            time.sleep(5)
             trycnt -= 1
             continue
         break
@@ -63,6 +80,7 @@ def getBookPlainText(bookid):
     return state, content
 
 def getBook(bookid):
+    global dlang, dauthor, dbook
     state, content = getBookPlainText(bookid)
     if (state!=0):
         return state, None, None, None
@@ -79,28 +97,43 @@ def getBook(bookid):
             language = line[9:].strip().rstrip().replace('/','|')
     if (bookname == None or len(bookname)==0) or (author == None or len(author)==0) or (language == None or len(language)==0):
         return 1, None, None, None
-    if (len(bookname)>20):
-        bookname = bookname[:20]
-    if (len(author)>20):
-        author = author[:20]
-    if (len(language)>20):
-        language = language[:20]
     language_dirs = os.listdir(base_data_dir)
-    if not(language in language_dirs):
-        os.mkdir('%s/%s'%(base_data_dir, language))
-    author_dirs = os.listdir('%s/%s'%(base_data_dir, language))
-    if not(author in author_dirs):
-        os.mkdir('%s/%s/%s'%(base_data_dir, language, author))
-    ftarget = open('%s/%s/%s/%s.txt'%(base_data_dir, language, author, bookname), 'w')
+    if not(dlang.has_key(language)):
+        dlang[language] = '%02d'%len(dlang)
+    if not(dlang[language] in language_dirs):
+        os.mkdir('%s/%s'%(base_data_dir, dlang[language]))
+    author_dirs = os.listdir('%s/%s'%(base_data_dir, dlang[language]))
+    if not(dauthor.has_key(author)):
+        dauthor[author] = '%05d'%len(dauthor)
+    if not(dauthor[author] in author_dirs):
+        os.mkdir('%s/%s/%s'%(base_data_dir, dlang[language], dauthor[author]))
+    dbook[bookname]='%05d'%bookid
+    ftarget = open('%s/%s/%s/%s.txt'%(base_data_dir, dlang[language], dauthor[author], dbook[bookname]), 'w')
     ftarget.writelines(content)
     ftarget.close()
+    if len(dbook)%10==0:
+        save2json(dlang, base_data_dir+'/lang.json')
+        save2json(dauthor, base_data_dir+'/author.json')
+        save2json(dbook, base_data_dir+'/book.json')
+        print 'Autosave completed!'
     return 0, bookname, language, author
 
 
 def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
+    global dlang, dauthor, dbook
+    dlang, dauthor, dbook = dict(), dict(), dict()
+    history_flist = os.listdir(base_data_dir)
+    if ('lang.json' in history_flist):
+        dlang = json2load(base_data_dir+'/lang.json')
+    if ('author.json' in history_flist):
+        dauthor = json2load(base_data_dir+'/author.json')
+    if ('book.json' in history_flist):
+        dbook = json2load(base_data_dir+'/book.json')
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
+        if dbook.has_key('%05d'%bookid):
+            continue
         state, bookname, language, author = getBook(bookid)
         message = ""
         if (state == 0):
@@ -118,10 +151,11 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
+    save2json(dlang, base_data_dir+'lang.json')
+    save2json(dauthor, base_data_dir+'author.json')
+    save2json(dbook, base_data_dir+'book.json')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list
     flog.write('[%s]'%(','.join(retry_list)))
     flog.close()
-
-getAllBook(0, 54866)
