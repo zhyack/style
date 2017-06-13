@@ -5,6 +5,14 @@ socket.setdefaulttimeout(1)
 import urllib
 import time
 
+import chardet
+def _2utf8(s):
+    guess = chardet.detect(s)
+    if guess["confidence"] < 0.5:
+        raise UnicodeDecodeError
+    s = unicode(s, guess["encoding"]).encode('UTF-8')
+    return s
+
 import json
 import yaml
 def save2json(d, pf):
@@ -14,6 +22,7 @@ def save2json(d, pf):
 def json2load(pf):
     f = open(pf,'r')
     s = ''.join(f.readlines())
+    s = _2utf8(s)
     f.close()
     def custom_str_constructor(loader, node):
         return loader.construct_scalar(node).encode('utf-8')
@@ -97,6 +106,9 @@ def getBook(bookid):
             language = line[9:].strip().rstrip().replace('/','|')
     if (bookname == None or len(bookname)==0) or (author == None or len(author)==0) or (language == None or len(language)==0):
         return 1, None, None, None
+    language = _2utf8(language)
+    author = _2utf8(author)
+    bookname = _2utf8(bookname)
     language_dirs = os.listdir(base_data_dir)
     if not(dlang.has_key(language)):
         dlang[language] = '%02d'%len(dlang)
@@ -143,6 +155,7 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
             message = 'Successfully get book(%d) <$%s$> writen by author <$%s$> in language <$%s$> .'%(bookid, bookname, author, language)
         elif (state == 1):
             message = 'Got book(%d), but missing important part. Abandon...'%(bookid)
+            dbook['%05d'%bookid]='%05d'%bookid
         elif (state == 2):
             message = 'Cannot get any txt entry of the book(%d)...'%(bookid)
             retry_list.append(str(bookid))
