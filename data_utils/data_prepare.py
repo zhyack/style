@@ -6,12 +6,13 @@ import urllib
 import time
 
 import chardet
-def _2utf8(s):
+def _2uni(s):
     guess = chardet.detect(s)
-    if guess["confidence"] < 0.5:
-        raise UnicodeDecodeError
-    s = unicode(s, guess["encoding"]).encode('UTF-8')
-    return s
+    # if guess["confidence"] < 0.5:
+    #     raise UnicodeDecodeError
+    return unicode(s, guess["encoding"])
+def _2utf8(s):
+    return _2uni(s).encode('UTF-8')
 
 import json
 import yaml

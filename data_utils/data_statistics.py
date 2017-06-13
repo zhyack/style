@@ -1,11 +1,37 @@
 import os
 
+import chardet
+def _2uni(s):
+    guess = chardet.detect(s)
+    # if guess["confidence"] < 0.5:
+    #     raise UnicodeDecodeError
+    return unicode(s, guess["encoding"])
+def _2utf8(s):
+    return _2uni(s).encode('UTF-8')
+
+import json
+import yaml
+def save2json(d, pf):
+    f = open(pf,'w')
+    f.write(json.dumps(d, ensure_ascii=False, indent=4))
+    f.close()
+def json2load(pf):
+    f = open(pf,'r')
+    s = ''.join(f.readlines())
+    s = _2utf8(s)
+    f.close()
+    def custom_str_constructor(loader, node):
+        return loader.construct_scalar(node).encode('utf-8')
+    yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
+    return yaml.load(s)
+
 allf = dict()
 rootp = ""
-base_data_dir = "C:/Users/zhy-win/Desktop/vps/data"
+base_data_dir = "../data"
+dlang, dauthor, dbook = None, None, None
 
 def cntWords(p,d=0):
-    global allf
+    global allf, dbook
     ret_words = 0
     f = open(p, 'r')
     for line in f.readlines():
@@ -16,14 +42,21 @@ def cntWords(p,d=0):
     allf[p]['files']=1
     allf[p]['words']=ret_words
     allf[p]['depth']=d
+    try:
+        allf[p]['name']=dbook[p[p.rfind('/')+1:p.rfind('.')]]
+    except KeyError:
+        del allf[p]
+        ret_words = 0
     return ret_words
 
 def cntSubs(p,d=0):
-    global allf
+    global allf, dlang, dauthor
     print p
     ret_folders, ret_files, ret_words = 0,0,0
     sublist = os.listdir(p)
     for subp in sublist:
+        if subp.endswith('.json'):
+            continue
         subp = p + '/' + subp
         if os.path.isfile(subp):
             word_cnt = cntWords(subp, d+1)
@@ -40,13 +73,43 @@ def cntSubs(p,d=0):
     allf[p]['words']=ret_words
     allf[p]['type']='folder'
     allf[p]['depth']=d
+    try:
+        if d==0:
+            allf[p]['name']='All'
+        elif d == 1:
+            allf[p]['name']=dlang[p[p.rfind('/')+1:]]
+        elif d == 2:
+            allf[p]['name']=dauthor[p[p.rfind('/')+1:]]
+    except KeyError:
+        del allf[p]
+        ret_folders=0
+        ret_files=0
+        ret_words=0
     return ret_folders, ret_files, ret_words
 
-def init(p=base_data_dir):
-    global allf
+def init(p=base_data_dir, rebuild=False, banlist=[[],['Various', 'Anonymous'],[]]):
+    global allf, dlang, dauthor, dbook, rootp
+    dlang = json2load(base_data_dir+'/lang.json')
+    dauthor = json2load(base_data_dir+'/author.json')
+    dbook = json2load(base_data_dir+'/book.json')
+    for k in banlist[0]:
+        if dlang.has_key(k):
+            del(dlang[k])
+    for k in banlist[1]:
+        if dauthor.has_key(k):
+            del(dauthor[k])
+    for k in banlist[2]:
+        if dbook.has_key(k):
+            del(dbook[k])
+    dlang = dict([(v,k) for k,v in dlang.iteritems()])
+    dauthor = dict([(v,k) for k,v in dauthor.iteritems()])
+    dbook = dict([(v,k) for k,v in dbook.iteritems()])
     allf = dict()
-    cntSubs(p)
-    global rootp
+    if 'statistics.json' in os.listdir(p) and not rebuild:
+        allf = json2load(p+'/statistics.json')
+    else:
+        cntSubs(p)
+        save2json(allf, p+'/statistics.json')
     rootp = p
     print 'Init done...'
 
@@ -94,6 +157,6 @@ def queryMax(p=rootp, depth=0, tp='folder', metric='files'):
     print 'Max [%s] of [%ss] is %d'%(metric,tp,maxm)
     print 'Refer to:'
     for i in range(min(20,len(maxp))):
-        print maxp[i]
+        print maxp[i]+' --- %s'%(allf[maxp[i]]['name'])
     if (len(maxp)>20):
         print 'And More(%s)...'%(len(maxp))
