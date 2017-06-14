@@ -134,7 +134,7 @@ def getBook(bookid):
         save2map(dlang, base_data_dir+'/lang.map')
         save2map(dauthor, base_data_dir+'/author.map')
         save2map(dbook, base_data_dir+'/book.map')
-        print 'Autosave completed!'
+        print 'Autosave completed! --- %d'%(len(dbook))
     return 0, bookname, language, author
 
 
@@ -151,7 +151,7 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     rdbook = set()
     for k in dbook.keys():
         rdbook.add(dbook[k])
-    print rdbook
+    print sorted(list(rdbook))
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
