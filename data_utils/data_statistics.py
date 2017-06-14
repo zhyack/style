@@ -5,7 +5,13 @@ def _2uni(s):
     guess = chardet.detect(s)
     # if guess["confidence"] < 0.5:
     #     raise UnicodeDecodeError
-    return unicode(s, guess["encoding"])
+    try:
+        return unicode(s, guess["encoding"])
+    except UnicodeDecodeError:
+        try:
+            return unicode(s, 'UTF-8')
+        except UnicodeDecodeError:
+            return unicode(s, 'GBK')
 def _2utf8(s):
     return _2uni(s).encode('UTF-8')
 
