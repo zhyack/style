@@ -130,7 +130,8 @@ def getBook(bookid):
     ftarget = open('%s/%s/%s/%s.txt'%(base_data_dir, dlang[language], dauthor[author], dbook[bookname]), 'w')
     ftarget.writelines(content)
     ftarget.close()
-    if len(dbook)%10==0:
+    if len(dbook)%50==0:
+        print 'Start Autosaving... No CTRL+C!!!'
         save2map(dlang, base_data_dir+'/lang.map')
         save2map(dauthor, base_data_dir+'/author.map')
         save2map(dbook, base_data_dir+'/book.map')
@@ -151,7 +152,11 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     rdbook = set()
     for k in dbook.keys():
         rdbook.add(dbook[k])
-    print sorted(list(rdbook))
+
+    print sorted(dlang.values())
+    print sorted(dauthor.values())
+
+    print len(dlang), len(dauthor), len(dbook)
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
