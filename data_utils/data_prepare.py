@@ -180,7 +180,10 @@ def allDFix():
                     rdauthor[author] = authorname
                 if rdauthor[author] != authorname:
                     if not dauthor.has_key(authorname) or dauthor[authorname]==author:
-                        dauthor[authorname]='%05d'%len(dauthor)
+                        i = 0
+                        while(rdauthor.has_key('%05d'%i)):
+                            i+=1
+                        dauthor[authorname]='%05d'%i
                         rdauthor[dauthor[authorname]]=authorname
                         os.mkdir('%s/%s/%s'%(base_data_dir, dlang[language], dauthor[authorname]))
                     os.system('mv %s/%s/%s/%s.txt %s/%s/%s/%s.txt'%(base_data_dir, lang, author, book, base_data_dir, lang, dauthor[authorname], book))
