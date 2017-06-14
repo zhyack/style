@@ -139,6 +139,43 @@ def getBook(bookid):
     return 0, bookname, language, author
 
 
+def allDFix():
+    global dlang, dauthor, dbook
+    s = set(dbook.values())
+    for lang in os.listdir(base_data_dir):
+        for author in os.listdir(base_data_dir+'/'+lang):
+            for book in os.listdir(base_data_dir+'/'+lang+'/'+author):
+                if not (book.endswith('.txt')):
+                    continue
+                book = book[:-4]
+                if book in s:
+                    continue
+                f = open(base_data_dir+'/'+lang+'/'+author+'/'+ book+'.txt')
+                content = f.readlines()
+                bookname, authorname, language = None, None, None
+                for i in range(min(100,len(content))):
+                    line = content[i]
+                    if line.startswith('Title:'):
+                        bookname = line[7:].strip().rstrip().replace('/','|')
+                    elif line.startswith('Author:'):
+                        authorname = line[7:].strip().rstrip().replace('/','|')
+                    elif line.startswith('Language:'):
+                        language = line[9:].strip().rstrip().replace('/','|')
+                f.close()
+                if bookname==None or author==None or language==None:
+                    raise Exception("Ohhh....%s"(base_data_dir+'/'+lang+'/'+author+'/'+ book+'.txt'))
+                language = _2utf8(language)
+                authorname = _2utf8(authorname)
+                bookname = _2utf8(bookname)
+                dlang[language]=lang
+                dauthor[authorname]=author
+                dbook[bookname]=book
+    save2map(dlang, base_data_dir+'/lang.map')
+    save2map(dauthor, base_data_dir+'/author.map')
+    save2map(dbook, base_data_dir+'/book.map')
+
+
+
 def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     global dlang, dauthor, dbook
     dlang, dauthor, dbook = dict(), dict(), dict()
@@ -149,13 +186,12 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         dauthor = map2load(base_data_dir+'/author.map')
     if ('book.map' in history_flist):
         dbook = map2load(base_data_dir+'/book.map')
+
+    allDFix()
+
     rdbook = set()
     for k in dbook.keys():
         rdbook.add(dbook[k])
-
-    print sorted(dlang.values())
-    print sorted(dauthor.values())
-
     print len(dlang), len(dauthor), len(dbook)
     flog = open(log_path, 'w')
     retry_list = []
