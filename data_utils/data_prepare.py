@@ -143,6 +143,8 @@ def allDFix():
     global dlang, dauthor, dbook
     s = set(dbook.values())
     for lang in os.listdir(base_data_dir):
+        if lang.endswith('.map'):
+            continue
         for author in os.listdir(base_data_dir+'/'+lang):
             for book in os.listdir(base_data_dir+'/'+lang+'/'+author):
                 if not (book.endswith('.txt')):
