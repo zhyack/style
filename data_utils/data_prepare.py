@@ -80,7 +80,7 @@ def getBookPlainTextLink(url):
     en = s.find('</a>',st)
     p_link = s[st:en]
     if len(p_link)<=4 or len(p_link)>=12:
-        return 3, None
+        return 4, None
     return 0, url+'/'+p_link
 
 
@@ -165,8 +165,11 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
             message = 'Cannot get any txt entry of the book(%d)...'%(bookid)
             retry_list.append(str(bookid))
         elif (state == 3):
-            message = 'Cannot access to the link of book(%d)...'%(bookid)
+            message = 'Cannot access to the link of the book(%d)...'%(bookid)
             retry_list.append(str(bookid))
+        elif (state == 4):
+            message = 'No link of the book(%d)...'%(bookid)
+            dbook['%05d'%bookid]='%05d'%bookid
         else:
             message = 'What happened with book(%d)? %s'%(bookid, str(state))
         print message
