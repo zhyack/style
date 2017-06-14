@@ -114,6 +114,8 @@ def getBook(bookid):
     language = _2utf8(language)
     author = _2utf8(author)
     bookname = _2utf8(bookname)
+    if dbook.has_key(bookname):
+        return 1, None, None, None
     language_dirs = os.listdir(base_data_dir)
     if not(dlang.has_key(language)):
         dlang[language] = '%02d'%len(dlang)
