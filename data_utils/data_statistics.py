@@ -9,21 +9,26 @@ def _2uni(s):
 def _2utf8(s):
     return _2uni(s).encode('UTF-8')
 
-import json
-import yaml
-def save2json(d, pf):
+def save2map(d, pf):
     f = open(pf,'w')
-    f.write(json.dumps(d, ensure_ascii=False, indent=4))
+    for k in d.keys():
+        f.write(_2utf8(k)+'\n')
+        f.write(_2utf8(d[k])+'\n')
     f.close()
-def json2load(pf):
+def map2load(pf):
     f = open(pf,'r')
-    s = ''.join(f.readlines())
-    s = _2utf8(s)
+    d = dict()
+    k = None
+    cnt = 0
+    for s in f.readlines():
+        if cnt%2==1:
+            d[k]=s.strip()
+        else:
+            k = s.strip()
+        cnt += 1
     f.close()
-    def custom_str_constructor(loader, node):
-        return loader.construct_scalar(node).encode('utf-8')
-    yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
-    return yaml.load(s)
+    return d
+
 
 allf = dict()
 rootp = ""

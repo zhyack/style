@@ -14,21 +14,25 @@ def _2uni(s):
 def _2utf8(s):
     return _2uni(s).encode('UTF-8')
 
-import json
-import yaml
-def custom_str_constructor(loader, node):
-    return loader.construct_scalar(node).encode('utf-8')
-yaml.add_constructor(u'tag:yaml.org,2002:str', custom_str_constructor)
-def save2json(d, pf):
+def save2map(d, pf):
     f = open(pf,'w')
-    f.write(json.dumps(d, ensure_ascii=False, indent=4))
+    for k in d.keys():
+        f.write(_2utf8(k)+'\n')
+        f.write(_2utf8(d[k])+'\n')
     f.close()
-def json2load(pf):
+def map2load(pf):
     f = open(pf,'r')
-    s = ''.join(f.readlines())
-    s = _2utf8(s)
+    d = dict()
+    k = None
+    cnt = 0
+    for s in f.readlines():
+        if cnt%2==1:
+            d[k]=s.strip()
+        else:
+            k = s.strip()
+        cnt += 1
     f.close()
-    return yaml.load(s)
+    return d
 
 base_url = "http://www.gutenberg.org/files/"
 base_data_dir = "../data"
@@ -105,17 +109,6 @@ def getBook(bookid):
             author = line[7:].strip().rstrip().replace('/','|')
         elif line.startswith('Language:'):
             language = line[9:].strip().rstrip().replace('/','|')
-    try:
-        if bookname:
-            yaml.load(bookname)
-        if language:
-            yaml.load(language)
-        if author:
-            yaml.load(author)
-    except yaml.reader.ReaderError:
-        return 1, None, None, None
-    except Error:
-        pass
     if (bookname == None or len(bookname)==0) or (author == None or len(author)==0) or (language == None or len(language)==0):
         return 1, None, None, None
     language = _2utf8(language)
@@ -136,9 +129,9 @@ def getBook(bookid):
     ftarget.writelines(content)
     ftarget.close()
     if len(dbook)%10==0:
-        save2json(dlang, base_data_dir+'/lang.json')
-        save2json(dauthor, base_data_dir+'/author.json')
-        save2json(dbook, base_data_dir+'/book.json')
+        save2map(dlang, base_data_dir+'/lang.map')
+        save2map(dauthor, base_data_dir+'/author.map')
+        save2map(dbook, base_data_dir+'/book.map')
         print 'Autosave completed!'
     return 0, bookname, language, author
 
@@ -147,12 +140,12 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     global dlang, dauthor, dbook
     dlang, dauthor, dbook = dict(), dict(), dict()
     history_flist = os.listdir(base_data_dir)
-    if ('lang.json' in history_flist):
-        dlang = json2load(base_data_dir+'/lang.json')
-    if ('author.json' in history_flist):
-        dauthor = json2load(base_data_dir+'/author.json')
-    if ('book.json' in history_flist):
-        dbook = json2load(base_data_dir+'/book.json')
+    if ('lang.map' in history_flist):
+        dlang = map2load(base_data_dir+'/lang.map')
+    if ('author.map' in history_flist):
+        dauthor = map2load(base_data_dir+'/author.map')
+    if ('book.map' in history_flist):
+        dbook = map2load(base_data_dir+'/book.map')
     rdbook = set()
     for k in dbook.keys():
         rdbook.add(dbook[k])
@@ -179,9 +172,9 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
-    save2json(dlang, base_data_dir+'./lang.json')
-    save2json(dauthor, base_data_dir+'./author.json')
-    save2json(dbook, base_data_dir+'./book.json')
+    save2map(dlang, base_data_dir+'./lang.map')
+    save2map(dauthor, base_data_dir+'./author.map')
+    save2map(dbook, base_data_dir+'./book.map')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list
