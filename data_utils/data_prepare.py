@@ -147,7 +147,6 @@ def getBook(bookid):
 
 def allDFix():
     global dlang, dauthor, dbook
-    s = set(dbook.values())
     for lang in os.listdir(base_data_dir):
         if lang.endswith('.map'):
             continue
@@ -156,8 +155,6 @@ def allDFix():
                 if not (book.endswith('.txt')):
                     continue
                 book = book[:-4]
-                if book in s:
-                    continue
                 f = open(base_data_dir+'/'+lang+'/'+author+'/'+ book+'.txt')
                 content = f.readlines()
                 bookname, authorname, language = None, None, None
@@ -197,10 +194,10 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
 
     allDFix()
 
-    rdbook = set()
-    for k in dbook.keys():
-        rdbook.add(dbook[k])
-    print len(dlang), len(dauthor), len(dbook)
+    rdbook = set(dbook.values())
+    print len(dlang),max(dlang.values())
+    print len(dauthor),max(dauthor.values())
+    print len(dbook),max(dbook.values())
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
@@ -230,9 +227,9 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
-    save2map(dlang, base_data_dir+'./lang.map')
-    save2map(dauthor, base_data_dir+'./author.map')
-    save2map(dbook, base_data_dir+'./book.map')
+    save2map(dlang, base_data_dir+'/lang.map')
+    save2map(dauthor, base_data_dir+'/author.map')
+    save2map(dbook, base_data_dir+'/book.map')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list
