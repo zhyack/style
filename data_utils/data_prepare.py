@@ -188,3 +188,4 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     print retry_list
     flog.write('[%s]'%(','.join(retry_list)))
     flog.close()
+    return retry_list
