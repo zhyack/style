@@ -115,7 +115,7 @@ def getBook(bookid):
     author = _2utf8(author)
     bookname = _2utf8(bookname)
     if dbook.has_key(bookname):
-        return 1, None, None, None
+        return 5, None, None, None
     language_dirs = os.listdir(base_data_dir)
     if not(dlang.has_key(language)):
         dlang[language] = '%02d'%len(dlang)
@@ -171,6 +171,9 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
             retry_list.append(str(bookid))
         elif (state == 4):
             message = 'No link of the book(%d)...'%(bookid)
+            dbook['%05d'%bookid]='%05d'%bookid
+        elif (state == 5):
+            message = 'Got book(%d), but duplicated. Abandon...'%(bookid)
             dbook['%05d'%bookid]='%05d'%bookid
         else:
             message = 'What happened with book(%d)? %s'%(bookid, str(state))
