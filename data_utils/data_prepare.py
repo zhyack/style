@@ -151,6 +151,7 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     rdbook = set()
     for k in dbook.keys():
         rdbook.add(dbook[k])
+    print rdbook
     flog = open(log_path, 'w')
     retry_list = []
     for bookid in range(start_id, end_id+1):
