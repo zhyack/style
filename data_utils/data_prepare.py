@@ -136,12 +136,15 @@ def getBook(bookid):
     ftarget = open('%s/%s/%s/%s.txt'%(base_data_dir, dlang[language], dauthor[author], dbook[bookname]), 'w')
     ftarget.writelines(content)
     ftarget.close()
-    if len(dbook)%50==0:
+    if len(dbook)%100==0:
         print 'Start Autosaving... No CTRL+C!!!'
         save2map(dlang, base_data_dir+'/lang.map')
         save2map(dauthor, base_data_dir+'/author.map')
         save2map(dbook, base_data_dir+'/book.map')
         print 'Autosave completed! --- %d'%(len(dbook))
+        print len(dlang),max(dlang.values())
+        print len(dauthor),max(dauthor.values())
+        print len(dbook),max(dbook.values())
     return 0, bookname, language, author
 
 
@@ -204,7 +207,7 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     if ('book.map' in history_flist):
         dbook = map2load(base_data_dir+'/book.map')
 
-    allDFix()
+    # allDFix()
 
     rdbook = set(dbook.values())
     print len(dlang),max(dlang.values())
