@@ -147,6 +147,7 @@ def getBook(bookid):
 
 def allDFix():
     global dlang, dauthor, dbook
+    rdauthor = dict((v,k) for k,v in dauthor.iteritems())
     for lang in os.listdir(base_data_dir):
         if lang.endswith('.map'):
             continue
@@ -173,8 +174,16 @@ def allDFix():
                 authorname = _2utf8(authorname)
                 bookname = _2utf8(bookname)
                 dlang[language]=lang
-                dauthor[authorname]=author
                 dbook[bookname]=book
+                if not rdauthor.has_key(author):
+                    dauthor[authorname] = author
+                    rdauthor[author] = authorname
+                if rdauthor[author] != authorname:
+                    if not dauthor.has_key(authorname) or dauthor[authorname]==author:
+                        dauthor[authorname]='%05d'%len(dauthor)
+                        rdauthor[dauthor[authorname]]=authorname
+                        os.mkdir('%s/%s/%s'%(base_data_dir, dlang[language], dauthor[authorname]))
+                    os.system('mv %s/%s/%s/%s.txt %s/%s/%s/%s.txt'%(base_data_dir, lang, author, book, base_data_dir, lang, dauthor[authorname], book))
     save2map(dlang, base_data_dir+'/lang.map')
     save2map(dauthor, base_data_dir+'/author.map')
     save2map(dbook, base_data_dir+'/book.map')
