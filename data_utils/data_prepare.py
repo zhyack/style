@@ -145,6 +145,15 @@ def getBook(bookid):
         print len(dlang),max([-1]+dlang.values())
         print len(dauthor),max([-1]+dauthor.values())
         print len(dbook),max([-1]+dbook.values())
+    if len(dbook)%51==0:
+        print 'Start Backuping... No CTRL+C!!!'
+        save2map(dlang, 'lang.map')
+        save2map(dauthor, 'author.map')
+        save2map(dbook, 'book.map')
+        print 'Backup completed! --- %d'%(len(dbook))
+        print len(dlang),max([-1]+dlang.values())
+        print len(dauthor),max([-1]+dauthor.values())
+        print len(dbook),max([-1]+dbook.values())
     return 0, bookname, language, author
 
 
