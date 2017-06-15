@@ -12,7 +12,7 @@ def _2uni(s):
     #     raise UnicodeDecodeError
     try:
         return unicode(s, guess["encoding"])
-    except UnicodeDecodeError:
+    except UnicodeDecodeError, LookupError:
         try:
             return unicode(s, 'UTF-8')
         except UnicodeDecodeError:

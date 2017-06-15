@@ -1,8 +1,8 @@
 import data_prepare
 
 while True:
-    ret = data_prepare.getAllBook(0, 10000)
-    # ret = data_prepare.getAllBook(10001, 20000)
+    # ret = data_prepare.getAllBook(0, 10000)
+    ret = data_prepare.getAllBook(10001, 20000)
     # ret = data_prepare.getAllBook(20001, 30000)
     # ret = data_prepare.getAllBook(30001, 40000)
     # ret = data_prepare.getAllBook(40001, 50000)
