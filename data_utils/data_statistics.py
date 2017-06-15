@@ -1,45 +1,11 @@
 import os
-
-import chardet
-def _2uni(s):
-    guess = chardet.detect(s)
-    # if guess["confidence"] < 0.5:
-    #     raise UnicodeDecodeError
-    try:
-        return unicode(s, guess["encoding"])
-    except UnicodeDecodeError:
-        try:
-            return unicode(s, 'UTF-8')
-        except UnicodeDecodeError:
-            return unicode(s, 'GBK')
-def _2utf8(s):
-    return _2uni(s).encode('UTF-8')
-
-def save2map(d, pf):
-    f = open(pf,'w')
-    for k in d.keys():
-        f.write(_2utf8(k)+'\n')
-        f.write(_2utf8(d[k])+'\n')
-    f.close()
-def map2load(pf):
-    f = open(pf,'r')
-    d = dict()
-    k = None
-    cnt = 0
-    for s in f.readlines():
-        if cnt%2==1:
-            d[k]=s.strip()
-        else:
-            k = s.strip()
-        cnt += 1
-    f.close()
-    return d
-
+from base_ops import *
 
 allf = dict()
 rootp = ""
 base_data_dir = "../data"
 dlang, dauthor, dbook = None, None, None
+rdlang, rdauthor, rdbook = None, None, None
 
 def cntWords(p,d=0):
     global allf, dbook
@@ -99,10 +65,14 @@ def cntSubs(p,d=0):
     return ret_folders, ret_files, ret_words
 
 def init(p=base_data_dir, rebuild=False, banlist=[[],['Various', 'Anonymous'],[]]):
-    global allf, dlang, dauthor, dbook, rootp
+    global allf, dlang, dauthor, dbook, rootp, rdauthor, rdlang, rdbook
     dlang = json2load(base_data_dir+'/lang.json')
     dauthor = json2load(base_data_dir+'/author.json')
     dbook = json2load(base_data_dir+'/book.json')
+    rdauthor = invert_dict(dauthor)
+    rdbook = invert_dict(dbook)
+    rdlang = invert_dict(dlang)
+
     for k in banlist[0]:
         if dlang.has_key(k):
             del(dlang[k])
@@ -171,3 +141,40 @@ def queryMax(p=rootp, depth=0, tp='folder', metric='files'):
         print maxp[i]+' --- %s'%(allf[maxp[i]]['name'])
     if (len(maxp)>20):
         print 'And More(%s)...'%(len(maxp))
+def queryWho(s, cla=None):
+    if cla == None:
+        if dlang.has_key(s):
+            print 'You probably mean Language <%s>, whose id is <%s>'%(s, dlang[s])
+        if rdlang.has_key(s):
+            print 'You probably mean Language id <%s>, which is <%s>'%(s, rdlang[s])
+        if dauthor.has_key(s):
+            print 'You probably mean Author <%s>, whose id is <%s>'%(s, dauthor[s])
+        if rdauthor.has_key(s):
+            print 'You probably mean Author id <%s>, who is <%s>'%(s, rdauthor[s])
+        if dbook.has_key(s):
+            print 'You probably mean Book <%s>, whose id is <%s>'%(s, dbook[s])
+        if rdbook.has_key(s):
+            print 'You probably mean Book id <%s>, which is <%s>'%(s, rdbook[s])
+    elif cla=='lang':
+        if dlang.has_key(s):
+            print 'Language <%s>, whose id is <%s>'%(s, dlang[s])
+        elif rdlang.has_key(s):
+            print 'Language id <%s>, which is <%s>'%(s, rdlang[s])
+        else:
+            print 'Cannot find the language...'
+    elif cla=='author':
+        if dauthor.has_key(s):
+            print 'Author <%s>, whose id is <%s>'%(s, dauthor[s])
+        elif rdauthor.has_key(s):
+            print 'Author id <%s>, who is <%s>'%(s, rdauthor[s])
+        else:
+            print 'Cannot find the author...'
+    elif cla=='book':
+        if dbook.has_key(s):
+            print 'Book <%s>, whose id is <%s>'%(s, dbook[s])
+        elif rdbook.has_key(s):
+            print 'Book id <%s>, which is <%s>'%(s, rdbook[s])
+        else:
+            print 'Cannot find the book...'
+    else:
+        print 'Wrong cla!(Only lang, author, book, or None is permitted.)'

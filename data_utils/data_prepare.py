@@ -4,41 +4,8 @@ import socket
 socket.setdefaulttimeout(1)
 import urllib
 import time
-
-import chardet
-def _2uni(s):
-    guess = chardet.detect(s)
-    # if guess["confidence"] < 0.5:
-    #     raise UnicodeDecodeError
-    try:
-        return unicode(s, guess["encoding"])
-    except:
-        try:
-            return unicode(s, 'UTF-8')
-        except UnicodeDecodeError:
-            return unicode(s, 'GBK')
-def _2utf8(s):
-    return _2uni(s).encode('UTF-8')
-
-def save2map(d, pf):
-    f = open(pf,'w')
-    for k in d.keys():
-        f.write(k+'\n')
-        f.write(d[k]+'\n')
-    f.close()
-def map2load(pf):
-    f = open(pf,'r')
-    d = dict()
-    k = None
-    cnt = 0
-    for s in f.readlines():
-        if cnt%2==1:
-            d[k]=s.strip()
-        else:
-            k = s.strip()
-        cnt += 1
-    f.close()
-    return d
+from base_ops import _2utf8
+from base_ops import *
 
 base_url = "http://www.gutenberg.org/files/"
 base_data_dir = "../data"
@@ -138,83 +105,34 @@ def getBook(bookid):
     ftarget.close()
     if len(dbook)%100==0:
         print 'Start Autosaving... No CTRL+C!!!'
-        save2map(dlang, base_data_dir+'/lang.map')
-        save2map(dauthor, base_data_dir+'/author.map')
-        save2map(dbook, base_data_dir+'/book.map')
+        save2json(dlang, base_data_dir+'/lang.json')
+        save2json(dauthor, base_data_dir+'/author.json')
+        save2json(dbook, base_data_dir+'/book.json')
         print 'Autosave completed! --- %d'%(len(dbook))
         print len(dlang),max([-1]+dlang.values())
         print len(dauthor),max([-1]+dauthor.values())
         print len(dbook),max([-1]+dbook.values())
     if len(dbook)%51==0:
         print 'Start Backuping... No CTRL+C!!!'
-        save2map(dlang, 'lang.map')
-        save2map(dauthor, 'author.map')
-        save2map(dbook, 'book.map')
+        save2json(dlang, base_data_dir+'/lang.json_backup')
+        save2json(dauthor, base_data_dir+'/author.json_backup')
+        save2json(dbook, base_data_dir+'/book.json_backup')
         print 'Backup completed! --- %d'%(len(dbook))
         print len(dlang),max([-1]+dlang.values())
         print len(dauthor),max([-1]+dauthor.values())
         print len(dbook),max([-1]+dbook.values())
     return 0, bookname, language, author
 
-
-def allDFix():
-    global dlang, dauthor, dbook
-    rdauthor = dict((v,k) for k,v in dauthor.iteritems())
-    for lang in os.listdir(base_data_dir):
-        if lang.endswith('.map'):
-            continue
-        for author in os.listdir(base_data_dir+'/'+lang):
-            for book in os.listdir(base_data_dir+'/'+lang+'/'+author):
-                if not (book.endswith('.txt')):
-                    continue
-                book = book[:-4]
-                f = open(base_data_dir+'/'+lang+'/'+author+'/'+ book+'.txt')
-                content = f.readlines()
-                bookname, authorname, language = None, None, None
-                for i in range(min(100,len(content))):
-                    line = content[i]
-                    if line.startswith('Title:'):
-                        bookname = line[7:].strip().rstrip().replace('/','|')
-                    elif line.startswith('Author:'):
-                        authorname = line[7:].strip().rstrip().replace('/','|')
-                    elif line.startswith('Language:'):
-                        language = line[9:].strip().rstrip().replace('/','|')
-                f.close()
-                if bookname==None or author==None or language==None:
-                    raise Exception("Ohhh....%s"(base_data_dir+'/'+lang+'/'+author+'/'+ book+'.txt'))
-                language = _2utf8(language)
-                authorname = _2utf8(authorname)
-                bookname = _2utf8(bookname)
-                dlang[language]=lang
-                dbook[bookname]=book
-                if not rdauthor.has_key(author):
-                    dauthor[authorname] = author
-                    rdauthor[author] = authorname
-                if rdauthor[author] != authorname:
-                    if not dauthor.has_key(authorname) or dauthor[authorname]==author:
-                        i = 0
-                        while(rdauthor.has_key('%05d'%i)):
-                            i+=1
-                        dauthor[authorname]='%05d'%i
-                        rdauthor[dauthor[authorname]]=authorname
-                        os.mkdir('%s/%s/%s'%(base_data_dir, dlang[language], dauthor[authorname]))
-                    os.system('mv %s/%s/%s/%s.txt %s/%s/%s/%s.txt'%(base_data_dir, lang, author, book, base_data_dir, lang, dauthor[authorname], book))
-    save2map(dlang, base_data_dir+'/lang.map')
-    save2map(dauthor, base_data_dir+'/author.map')
-    save2map(dbook, base_data_dir+'/book.map')
-
-
-
 def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
     global dlang, dauthor, dbook
     dlang, dauthor, dbook = dict(), dict(), dict()
     history_flist = os.listdir(base_data_dir)
-    if ('lang.map' in history_flist):
-        dlang = map2load(base_data_dir+'/lang.map')
-    if ('author.map' in history_flist):
-        dauthor = map2load(base_data_dir+'/author.map')
-    if ('book.map' in history_flist):
-        dbook = map2load(base_data_dir+'/book.map')
+    if ('lang.json' in history_flist):
+        dlang = json2load(base_data_dir+'/lang.json')
+    if ('author.json' in history_flist):
+        dauthor = json2load(base_data_dir+'/author.json')
+    if ('book.json' in history_flist):
+        dbook = json2load(base_data_dir+'/book.json')
 
     # allDFix()
 
@@ -251,9 +169,9 @@ def getAllBook(start_id, end_id, log_path="../log_getData.txt", interval=0):
         print message
         flog.write(message+'\n')
         time.sleep(interval)
-    save2map(dlang, base_data_dir+'/lang.map')
-    save2map(dauthor, base_data_dir+'/author.map')
-    save2map(dbook, base_data_dir+'/book.map')
+    save2json(dlang, base_data_dir+'/lang.json')
+    save2json(dauthor, base_data_dir+'/author.json')
+    save2json(dbook, base_data_dir+'/book.json')
     print 'All Done!'
     print 'Later you may want to retry the following: '
     print retry_list
