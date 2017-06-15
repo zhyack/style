@@ -23,8 +23,8 @@ def _2utf8(s):
 def save2map(d, pf):
     f = open(pf,'w')
     for k in d.keys():
-        f.write(_2utf8(k)+'\n')
-        f.write(_2utf8(d[k])+'\n')
+        f.write(k+'\n')
+        f.write(d[k]+'\n')
     f.close()
 def map2load(pf):
     f = open(pf,'r')
