@@ -14,8 +14,8 @@
 
 #
 import data_statistics
-data_statistics.init(rebuild=True, banlist=[[],['Various', 'Anonymous'],[]])
-# data_statistics.init(banlist=[[],['Various', 'Anonymous'],[]])
+# data_statistics.init(rebuild=True, banlist=[[],['Various', 'Anonymous'],[]])
+data_statistics.init(banlist=[[],['Various', 'Anonymous'],[]])
 from data_statistics import rootp
 data_statistics.queryCnt(p=rootp)
 data_statistics.queryCnt(p=rootp+'/00')
